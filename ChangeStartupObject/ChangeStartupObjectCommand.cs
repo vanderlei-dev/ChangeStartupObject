@@ -100,14 +100,30 @@ namespace ChangeStartupObject
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 DTE dte = await ChangeStartupObjectPackage.GetDTEAsync();
-                EnvDTE.Document activeDocument = dte.ActiveDocument;
 
-                string projectPath = activeDocument.ProjectItem.ContainingProject.FullName;
-                string filePath = activeDocument.FullName;                
+                string filePath = null;
+                string projectPath = null;
+
+                if (dte.ActiveWindow.Type == vsWindowType.vsWindowTypeDocument)
+                {
+                    filePath = dte.ActiveDocument.FullName;
+                    projectPath = dte.ActiveDocument.ProjectItem?.ContainingProject.FullName;
+                }
+                else if (dte.SelectedItems.Count == 1)
+                {
+                    filePath = dte.SelectedItems?.Item(1)?.ProjectItem?.FileNames[0];
+                    if (string.IsNullOrEmpty(filePath))
+                        return;
+
+                    projectPath = dte.SelectedItems?.Item(1)?.ProjectItem.ContainingProject.FullName;
+                }
+                    
+                if (string.IsNullOrEmpty(filePath) || string.IsNullOrEmpty(projectPath))                                    
+                    return;                
 
                 string classNamespace = await GetStartupClassAsync(projectPath, filePath);                
 
-                if (!string.IsNullOrEmpty(projectPath) && !string.IsNullOrEmpty(classNamespace))
+                if (!string.IsNullOrEmpty(classNamespace))
                 {
                     SetStartupObject(projectPath, classNamespace);
                 }

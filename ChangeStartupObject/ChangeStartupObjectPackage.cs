@@ -55,7 +55,9 @@ namespace ChangeStartupObject
 
         public static async Task<DTE> GetDTEAsync()
         {
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
             return await ServiceProvider.GetGlobalServiceAsync(typeof(DTE)) as DTE;
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
         }
 
         #endregion
